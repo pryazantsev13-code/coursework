@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Подтверждение бронирования{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light bg-opacity-50 border-0 py-3">
+                    <h4 class="mb-0 d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 rounded p-2 me-3">
+                            <i class="fas fa-calendar-check text-success"></i>
+                        </div>
+                        Подтверждение бронирования
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Детали бронирования -->
+                    <div class="alert alert-info border-0 shadow-sm mb-4">
+                        <h5 class="alert-heading d-flex align-items-center mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Детали бронирования
+                        </h5>
+                        <div class="row mt-3 g-3">
+                            <!-- Первая строка -->
+                            <div class="col-12 col-md-6 mb-3">
+                                <div class="d-flex align-items-center h-100">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-3 flex-shrink-0">
+                                        <i class="fas fa-spa text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <small class="text-muted fw-semibold">Услуга</small>
+                                        <div class="fw-bold text-dark">{{ service.name }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 mb-3">
+                                <div class="d-flex align-items-center h-100">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-3 flex-shrink-0">
+                                        <i class="fas fa-folder text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <small class="text-muted fw-semibold">Категория</small>
+                                        <div class="fw-bold text-dark">{{ service.category.name }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Вторая строка -->
+                            <div class="col-6 col-md-3 mb-3">
+                                <div class="d-flex align-items-center h-100">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-3 flex-shrink-0">
+                                        <i class="fas fa-calendar text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <small class="text-muted fw-semibold">Дата</small>
+                                        <div class="fw-bold text-dark">{{ time_slot.date|date:"d.m.Y" }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3 mb-3">
+                                <div class="d-flex align-items-center h-100">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-3 flex-shrink-0">
+                                        <i class="fas fa-clock text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <small class="text-muted fw-semibold">Время</small>
+                                        <div class="fw-bold text-dark">{{ time_slot.start_time|time:"H:i" }} - {{ time_slot.end_time|time:"H:i" }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3 mb-3">
+                                <div class="d-flex align-items-center h-100">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-3 flex-shrink-0">
+                                        <i class="fas fa-ruble-sign text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <small class="text-muted fw-semibold">Цена</small>
+                                        <div class="fw-bold text-dark">{{ service.price }} ₽</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3 mb-3">
+                                <div class="d-flex align-items-center h-100">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-3 flex-shrink-0">
+                                        <i class="fas fa-hourglass text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <small class="text-muted fw-semibold">Длительность</small>
+                                        <div class="fw-bold text-dark">{{ service.duration }} мин</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Форма бронирования -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Кнопки -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-center">
+                            <a href="{% url 'service_detail' service.id %}" class="btn btn-outline-secondary me-md-2 rounded-pill px-4 py-2">
+                                <i class="fas fa-arrow-left me-1"></i>Назад к выбору времени
+                            </a>
+                            <button type="submit" class="btn btn-success rounded-pill px-4 py-2 fw-semibold">
+                                <i class="fas fa-check-circle me-1"></i>Подтвердить бронирование
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem;
+    min-height: 100px;
+    resize: vertical;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+}
+
+.btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.rounded-pill {
+    border-radius: 50px !important;
+}
+
+.bg-primary bg-opacity-10 {
+    transition: all 0.2s ease;
+}
+
+.d-flex.align-items-center {
+    align-items: center !important;
+}
+
+.flex-shrink-0 {
+    flex-shrink: 0;
+}
+
+.flex-grow-1 {
+    flex-grow: 1;
+}
+
+.h-100 {
+    height: 100% !important;
+}
+</style>
+{% endblock %}

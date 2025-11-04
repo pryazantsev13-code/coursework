@@ -1,0 +1,85 @@
+<div class="row g-4">
+    {% for service in services %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm service-card">
+            <div class="card-body d-flex flex-column">
+                <div class="mb-3">
+                    <div class="bg-primary bg-opacity-10 rounded p-2 d-inline-flex mb-2">
+                        <i class="fas fa-spa fa-lg text-primary"></i>
+                    </div>
+                    <h5 class="card-title fw-bold text-dark">{{ service.name }}</h5>
+                </div>
+                
+                <div class="flex-grow-1 mb-3">
+                    <p class="card-text text-muted small lh-base">{{ service.description|truncatewords:20 }}</p>
+                </div>
+                
+                <div class="service-meta mb-3">
+                    <div class="d-flex justify-content-between align-items-center text-muted small mb-2">
+                        <span><i class="fas fa-folder me-1"></i>Категория</span>
+                        <span class="badge bg-primary bg-opacity-10 text-dark border border-primary border-opacity-25 rounded-pill px-3">
+                            {{ service.category.name }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center text-muted small mb-2">
+                        <span><i class="fas fa-ruble-sign me-1"></i>Цена</span>
+                        <span class="fw-bold text-primary fs-6">{{ service.price }} ₽</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center text-muted small">
+                        <span><i class="fas fa-clock me-1"></i>Длительность</span>
+                        <span class="fw-medium">{{ service.duration }} мин</span>
+                    </div>
+                    {% if service.average_rating > 0 %}
+                    <div class="d-flex justify-content-between align-items-center text-muted small mt-2">
+                        <span><i class="fas fa-star me-1 text-warning"></i>Рейтинг</span>
+                        <span class="badge bg-warning bg-opacity-20 text-dark border border-warning border-opacity-25 rounded-pill px-3">
+                            ★ {{ service.average_rating }} ({{ service.review_count }})
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <a href="{% url 'service_detail' service.id %}" class="btn btn-primary w-100 py-2 rounded-3 fw-semibold">
+                    <i class="fas fa-calendar-plus me-2"></i>Выбрать время
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-5">
+                    {% if query or selected_category or min_price or max_price %}
+                    <div class="bg-light bg-opacity-50 rounded-circle d-inline-flex p-4 mb-3">
+                        <i class="fas fa-search fa-2x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">По вашему запросу ничего не найдено</h4>
+                    <p class="text-muted mb-4">Попробуйте изменить параметры поиска</p>
+                    <button class="btn btn-outline-primary rounded-pill px-4" onclick="clearFilters()">
+                        <i class="fas fa-times me-2"></i>Сбросить фильтры
+                    </button>
+                    {% else %}
+                    <div class="bg-light bg-opacity-50 rounded-circle d-inline-flex p-4 mb-3">
+                        <i class="fas fa-spa fa-2x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">Услуг пока нет</h4>
+                    <p class="text-muted">Услуги появятся здесь позже</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+function clearFilters() {
+    $('#searchQuery').val('');
+    $('#categoryFilter').val('');
+    $('#minPrice').val('');
+    $('#maxPrice').val('');
+    performSearch();
+}
+</script>

@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Управление блокировками{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Заголовок -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                <i class="fas fa-lock text-primary fa-lg"></i>
+            </div>
+            <div>
+                <h2 class="h3 mb-1 fw-bold">Управление блокировками</h2>
+                <p class="text-muted mb-0 small">Управление временными слотами и их доступностью</p>
+            </div>
+        </div>
+        <a href="{% url 'manager_dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2">
+            <i class="fas fa-arrow-left me-1"></i>Назад к панели
+        </a>
+    </div>
+    
+    <!-- Действия с блокировками -->
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-light bg-opacity-50 border-0 py-3">
+            <h5 class="card-title mb-0 d-flex align-items-center">
+                <i class="fas fa-cogs text-primary me-2"></i>
+                Действия с блокировками
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <a href="{% url 'block_time_slots' %}" class="btn btn-primary rounded-pill px-4 py-2">
+                    <i class="fas fa-calendar-day me-2"></i>Заблокировать на дату
+                </a>
+                <a href="{% url 'bulk_block_slots' %}" class="btn btn-secondary rounded-pill px-4 py-2">
+                    <i class="fas fa-calendar-week me-2"></i>Массовая блокировка
+                </a>
+                <a href="{% url 'unblock_time_slots' %}" class="btn btn-warning rounded-pill px-4 py-2">
+                    <i class="fas fa-unlock me-2"></i>Разблокировать слоты
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список заблокированных слотов -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light bg-opacity-50 border-0 py-3 d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 d-flex align-items-center">
+                <i class="fas fa-list text-primary me-2"></i>
+                Заблокированные временные слоты
+            </h5>
+            <span class="badge bg-primary rounded-pill px-3 py-2">{{ blocked_slots|length }} слотов</span>
+        </div>
+        <div class="card-body p-0">
+            {% if blocked_slots %}
+                {% for date_str, slots in blocked_by_date.items %}
+                <div class="border-bottom">
+                    <div class="p-3 bg-light bg-opacity-50">
+                        <h6 class="mb-0 d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 rounded p-1 me-2">
+                                <i class="fas fa-calendar text-primary"></i>
+                            </div>
+                            {{ date_str }} 
+                            <span class="badge bg-secondary bg-opacity-20 text-dark border border-secondary border-opacity-25 rounded-pill px-3 py-2 ms-2">
+                                {{ slots|length }} заблокированных слотов
+                            </span>
+                        </h6>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">Время</th>
+                                    <th class="text-center">Услуга</th>
+                                    <th class="text-center">Причина блокировки</th>
+                                    <th class="text-center">Когда заблокировано</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for slot in slots %}
+                                <tr>
+                                    <td class="text-center align-middle fw-medium text-dark">
+                                        {{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <span class="badge bg-primary bg-opacity-10 text-dark border border-primary border-opacity-25 rounded-pill px-3 py-2">
+                                            {{ slot.service.name }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        {% if slot.block_reason %}
+                                            <span class="text-muted">{{ slot.block_reason }}</span>
+                                        {% else %}
+                                            <span class="text-muted fst-italic">Не указана</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <small class="text-muted fw-medium">
+                                            {{ slot.blocked_at|date:"d.m.Y H:i"|default:"-" }}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="bg-light bg-opacity-50 rounded-circle d-inline-flex p-4 mb-3">
+                        <i class="fas fa-unlock fa-2x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">Нет заблокированных временных слотов</h4>
+                    <p class="text-muted">Все слоты доступны для бронирования</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.table {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+    padding: 1rem 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table td {
+    padding: 1.25rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: center;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.04);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.rounded-pill {
+    border-radius: 50px !important;
+}
+
+.badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+.border-bottom {
+    border-color: #e9ecef !important;
+}
+
+.bg-light bg-opacity-50 {
+    background-color: rgba(248, 249, 250, 0.5) !important;
+}
+</style>
+{% endblock %}

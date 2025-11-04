@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}Панель менеджера{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Заголовок -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                <i class="fas fa-tachometer-alt text-primary fa-lg"></i>
+            </div>
+            <div>
+                <h2 class="h3 mb-1 fw-bold">Панель менеджера</h2>
+                <p class="text-muted mb-0 small">Управление бронированиями и расписанием</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Навигация по разделам -->
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-light bg-opacity-50 border-0 py-3">
+            <h5 class="card-title mb-0 d-flex align-items-center">
+                <i class="fas fa-sliders-h text-primary me-2"></i>
+                Управление бронированиями
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <a class="nav-pill {% if active_tab == 'today' %}active{% endif %}" href="#" data-tab="today">
+                    <i class="fas fa-calendar-day me-2"></i>Сегодня
+                </a>
+                <a class="nav-pill {% if active_tab == 'pending' %}active{% endif %}" href="#" data-tab="pending">
+                    <i class="fas fa-clock me-2"></i>Ожидают подтверждения
+                </a>
+                <a class="nav-pill {% if active_tab == 'all' %}active{% endif %}" href="#" data-tab="all">
+                    <i class="fas fa-list me-2"></i>Все бронирования
+                </a>
+                <a class="nav-pill nav-pill-external" href="{% url 'blocked_slots_list' %}" data-external="true">
+                    <i class="fas fa-lock me-2"></i>Управление блокировками
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контент вкладок -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div id="tabContent">
+                {% if active_tab == 'today' %}
+                    {% include 'bookings/_today_bookings.html' %}
+                {% elif active_tab == 'pending' %}
+                    {% include 'bookings/_pending_bookings.html' %}
+                {% elif active_tab == 'all' %}
+                    {% include 'bookings/_all_bookings.html' %}
+                {% else %}
+                    {% include 'bookings/_today_bookings.html' %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'bookings/_booking_modals.html' %}
+
+<style>
+.card {
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.nav-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    color: #6c757d;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.nav-pill:hover {
+    background: #ffffff;
+    border-color: #667eea;
+    color: #667eea;
+    text-decoration: none;
+}
+
+.nav-pill.active {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+}
+
+.nav-pill-external {
+    border-style: dashed;
+}
+
+.nav-pill-external:hover {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    function setActiveTabOnLoad() {
+        if (!$('.nav-pill.active').length) {
+            $('.nav-pill[data-tab="today"]').addClass('active');
+        }
+    }
+    
+    setActiveTabOnLoad();
+    
+    // Обработчик переключения вкладок
+    $('.nav-pill').on('click', function(e) {
+        e.preventDefault();
+        
+        if ($(this).data('external')) {
+            window.location.href = $(this).attr('href');
+            return;
+        }
+        
+        const tab = $(this).data('tab');
+        if (tab) {
+            loadTabContent(tab);
+        }
+    });
+    
+    function loadTabContent(tab) {
+        $('#tabContent').html(`
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p class="text-muted">Загрузка данных...</p>
+            </div>
+        `);
+        
+        $('.nav-pill').removeClass('active');
+        $(`.nav-pill[data-tab="${tab}"]`).addClass('active');
+        
+        $.ajax({
+            url: '{% url "manager_dashboard" %}',
+            type: 'GET',
+            data: { tab: tab },
+            success: function(data) {
+                $('#tabContent').html(data);
+            },
+            error: function() {
+                $('#tabContent').html(`
+                    <div class="alert alert-danger text-center m-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Ошибка загрузки данных
+                    </div>
+                `);
+            }
+        });
+    }
+    
+    // Обработчик для модальных окон
+    $(document).on('submit', '.booking-status-form', function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Обновление...');
+        
+        const formData = form.serialize();
+        
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: formData,
+            success: function(data) {
+                form.closest('.modal').modal('hide');
+                
+                const activeTab = $('.nav-pill.active').data('tab');
+                if (activeTab) {
+                    loadTabContent(activeTab);
+                }
+                
+            },
+            error: function() {
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+    
+
+});
+</script>
+{% endblock %}

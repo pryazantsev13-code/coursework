@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+
+{% block title %}Панель администратора{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Заголовок -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                <i class="fas fa-shield-alt text-primary fa-lg"></i>
+            </div>
+            <div>
+                <h2 class="h3 mb-1 fw-bold">Панель администратора</h2>
+                <p class="text-muted mb-0 small">Обзор системы и управление</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Статистика с карточками -->
+    <div class="row mb-4 justify-content-center" id="statsContent">
+        {% include 'bookings/_admin_stats.html' %}
+    </div>
+
+    <!-- Быстрые действия -->
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-light bg-opacity-50 border-0 py-3">
+            <h5 class="card-title mb-0 d-flex align-items-center">
+                <i class="fas fa-bolt text-warning me-2"></i>
+                Быстрые действия
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <a href="{% url 'manage_services' %}" class="btn btn-primary btn-sm px-4 py-2 rounded-pill">
+                    <i class="fas fa-spa me-2"></i>Управление услугами
+                </a>
+                <a href="{% url 'manage_categories' %}" class="btn btn-secondary btn-sm px-4 py-2 rounded-pill">
+                    <i class="fas fa-tags me-2"></i>Управление категориями
+                </a>
+                <a href="/admin/" class="btn btn-outline-dark btn-sm px-4 py-2 rounded-pill">
+                    <i class="fas fa-cog me-2"></i>Django Админка
+                </a>
+                <button id="refreshStats" class="btn btn-outline-info btn-sm px-4 py-2 rounded-pill">
+                    <i class="fas fa-sync-alt me-2"></i>Обновить статистику
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблица бронирований -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light bg-opacity-50 border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 d-flex align-items-center">
+                        <i class="fas fa-calendar-check text-primary me-2"></i>
+                        Последние бронирования
+                    </h5>
+                    <button class="btn btn-sm btn-outline-primary d-flex align-items-center" id="refreshBookings">
+                        <i class="fas fa-sync-alt me-1"></i>Обновить
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <div id="bookingsContent">
+                            {% include 'bookings/_recent_bookings.html' %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.table {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    padding: 1rem 0.75rem;
+    color: #495057;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: center;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.04);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table th:first-child,
+.table td:first-child {
+    width: 60px;
+    text-align: center;
+}
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+.rounded-pill {
+    border-radius: 50px !important;
+}
+
+.container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Обновление статистики
+    $('#refreshStats').on('click', function() {
+        refreshStats();
+    });
+    
+    // Обновление бронирований
+    $('#refreshBookings').on('click', function() {
+        refreshBookings();
+    });
+    
+    function refreshStats() {
+        $('#statsContent').html(`
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p class="text-muted">Обновление статистики...</p>
+            </div>
+        `);
+        
+        $.ajax({
+            url: '{% url "admin_dashboard" %}',
+            type: 'GET',
+            data: { 'section': 'stats' },
+            success: function(data) {
+                $('#statsContent').html(data);
+            },
+            error: function() {
+                $('#statsContent').html(`
+                    <div class="alert alert-danger text-center m-4">
+                        Ошибка загрузки статистики
+                    </div>
+                `);
+            }
+        });
+    }
+    
+    function refreshBookings() {
+        $('#bookingsContent').html(`
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p class="text-muted">Обновление бронирований...</p>
+            </div>
+        `);
+        
+        $.ajax({
+            url: '{% url "admin_dashboard" %}',
+            type: 'GET',
+            data: { 'section': 'bookings' },
+            success: function(data) {
+                $('#bookingsContent').html(data);
+            },
+            error: function() {
+                $('#bookingsContent').html(`
+                    <div class="alert alert-danger text-center m-4">
+                        Ошибка загрузки бронирований
+                    </div>
+                `);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

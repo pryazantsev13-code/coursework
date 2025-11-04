@@ -1,0 +1,69 @@
+{% if recent_bookings %}
+<div class="table-responsive">
+    <table class="table table-hover mb-0">
+        <thead class="table-light">
+            <tr>
+                <th class="ps-4">Клиент</th>
+                <th>Услуга</th>
+                <th>Дата</th>
+                <th class="text-end pe-4">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in recent_bookings %}
+            <tr>
+                <td class="ps-4">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <div class="fw-medium small">{{ booking.user.get_full_name|default:booking.user.username }}</div>
+                            <div class="text-muted extra-small">{{ booking.user.email }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-primary">{{ booking.service.name }}</span>
+                </td>
+                <td>
+                    <small class="text-muted">
+                        {{ booking.time_slot.date|date:"d.m.Y" }}<br>
+                        {{ booking.time_slot.start_time|time:"H:i" }}
+                    </small>
+                </td>
+                <td class="text-end pe-4">
+                    <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning text-dark{% elif booking.status == 'completed' %}bg-info{% else %}bg-secondary{% endif %}">
+                        <i class="fas {% if booking.status == 'confirmed' %}fa-check{% elif booking.status == 'pending' %}fa-clock{% elif booking.status == 'completed' %}fa-check-double{% else %}fa-times{% endif %} me-1"></i>
+                        {{ booking.get_status_display }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-4">
+    <i class="fas fa-calendar-times fa-2x text-muted mb-3"></i>
+    <p class="text-muted mb-0">Бронирований пока нет</p>
+</div>
+{% endif %}
+
+<style>
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.875rem;
+}
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+.avatar-circle {
+    flex-shrink: 0;
+}
+.extra-small {
+    font-size: 0.75rem;
+}
+</style>

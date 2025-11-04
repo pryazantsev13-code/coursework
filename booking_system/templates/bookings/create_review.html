@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}Оставить отзыв{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Заголовок карточки -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light bg-opacity-50 border-0 py-3">
+                    <h4 class="mb-0 d-flex align-items-center">
+                        <div class="bg-warning bg-opacity-10 rounded p-2 me-3">
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                        Оставить отзыв
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Информация о бронировании -->
+                    <div class="alert alert-info border-0 shadow-sm">
+                        <h5 class="alert-heading d-flex align-items-center mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Информация о бронировании
+                        </h5>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                                        <i class="fas fa-spa text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted fw-semibold">Услуга</small>
+                                        <div class="fw-bold text-dark">{{ booking.service.name }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                                        <i class="fas fa-calendar text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted fw-semibold">Дата</small>
+                                        <div class="fw-bold text-dark">{{ booking.time_slot.date|date:"d.m.Y" }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                                        <i class="fas fa-clock text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted fw-semibold">Время</small>
+                                        <div class="fw-bold text-dark">{{ booking.time_slot.start_time|time:"H:i" }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Форма отзыва -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Оценка -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold mb-3">Ваша оценка:</label>
+                            <div class="rating-slider-container">
+                                <!-- Ползунок -->
+                                <div class="mb-3">
+                                    <input type="range" 
+                                           class="form-range rating-slider" 
+                                           id="ratingSlider"
+                                           name="rating"
+                                           min="1" 
+                                           max="5" 
+                                           step="1" 
+                                           value="3"
+                                           oninput="updateRatingDisplay(this.value)">
+                                </div>
+                                
+                                <!-- Отображение звезд и значения -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="rating-display">
+                                        <div class="stars-display mb-2">
+                                            {% for i in "12345" %}
+                                                <span class="star" id="star{{ forloop.counter }}">☆</span>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="rating-text text-center">
+                                            <span id="ratingValue" class="fw-bold text-primary">3</span>
+                                            <span id="ratingLabel" class="text-muted"> - Хорошо</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if form.rating.errors %}
+                                <div class="text-danger small mt-2">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {{ form.rating.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Комментарий -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Комментарий:</label>
+                            {{ form.comment }}
+                            {% if form.comment.errors %}
+                                <div class="text-danger small mt-2">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {{ form.comment.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text text-muted">
+                                Расскажите о вашем опыте посещения
+                            </div>
+                        </div>
+                        
+                        <!-- Кнопки -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'profile' %}" class="btn btn-outline-secondary me-md-2 rounded-pill px-4 py-2">
+                                <i class="fas fa-arrow-left me-1"></i>Отмена
+                            </a>
+                            <button type="submit" class="btn btn-success rounded-pill px-4 py-2 fw-semibold">
+                                <i class="fas fa-paper-plane me-1"></i>Оставить отзыв
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateRatingDisplay(value) {
+    // Обновляем числовое значение
+    document.getElementById('ratingValue').textContent = value;
+    
+    // Обновляем текстовое описание
+    const ratingLabels = {
+        '1': ' - Ужасно',
+        '2': ' - Плохо',
+        '3': ' - Хорошо',
+        '4': ' - Отлично',
+        '5': ' - Превосходно'
+    };
+    document.getElementById('ratingLabel').textContent = ratingLabels[value];
+    
+    // Обновляем отображение звезд
+    const stars = document.querySelectorAll('.star');
+    stars.forEach((star, index) => {
+        if (index < value) {
+            star.textContent = '★';
+            star.style.color = '#ffc107';
+        } else {
+            star.textContent = '☆';
+            star.style.color = '#6c757d';
+        }
+    });
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    updateRatingDisplay(3);
+});
+</script>
+
+<style>
+.card {
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.rating-slider-container {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.rating-slider {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 10px;
+    outline: none;
+}
+
+.rating-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #0d6efd;
+    cursor: pointer;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+}
+
+.rating-slider::-webkit-slider-thumb:hover {
+    background: #0b5ed7;
+    transform: scale(1.1);
+}
+
+.rating-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #0d6efd;
+    cursor: pointer;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+}
+
+.rating-slider::-moz-range-thumb:hover {
+    background: #0b5ed7;
+    transform: scale(1.1);
+}
+
+.stars-display {
+    font-size: 2rem;
+    letter-spacing: 4px;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.star {
+    transition: all 0.3s ease;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.rating-text {
+    font-size: 1.1rem;
+}
+
+.rating-display {
+    width: 100%;
+    text-align: center;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+}
+
+.alert {
+    border-radius: 12px;
+    border: none;
+}
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.rounded-pill {
+    border-radius: 50px !important;
+}
+
+.bg-primary bg-opacity-10 {
+    transition: all 0.2s ease;
+}
+</style>
+{% endblock %}

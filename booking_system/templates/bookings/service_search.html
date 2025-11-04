@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Поиск услуг{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                <i class="fas fa-search text-primary fa-lg"></i>
+            </div>
+            <div>
+                <h2 class="h3 mb-1 fw-bold">Поиск услуг</h2>
+                <p class="text-muted mb-0 small">Найдите подходящую услугу по параметрам</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Форма поиска и фильтров -->
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-light bg-opacity-50 border-0 py-3">
+            <h5 class="card-title mb-0 d-flex align-items-center">
+                <i class="fas fa-filter text-primary me-2"></i>
+                Параметры поиска
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <form id="searchForm" method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small text-muted fw-semibold">Название услуги</label>
+                    <input type="text" name="q" class="form-control rounded-3" placeholder="Введите название услуги..." value="{{ query }}" id="searchQuery">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted fw-semibold">Категория</label>
+                    <select name="category" class="form-select rounded-3" id="categoryFilter">
+                        <option value="">Все категории</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"i" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted fw-semibold">Цена от</label>
+                    <input type="number" name="min_price" class="form-control rounded-3" placeholder="0" value="{{ min_price }}" id="minPrice">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted fw-semibold">Цена до</label>
+                    <input type="number" name="max_price" class="form-control rounded-3" placeholder="9999" value="{{ max_price }}" id="maxPrice">
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100 py-2 rounded-3">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Результаты поиска -->
+    <div id="searchResults">
+        {% include 'bookings/_service_results.html' %}
+    </div>
+</div>
+
+<div id="loadingSpinner" class="text-center py-5" style="display: none;">
+    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Загрузка...</span>
+    </div>
+    <p class="text-muted">Поиск услуг...</p>
+</div>
+
+<style>
+.card {
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+}
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.rounded-3 {
+    border-radius: 12px !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#loadingSpinner {
+    animation: fadeIn 0.3s ease;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    let searchTimeout;
+    
+    // AJAX поиск при изменении фильтров с задержкой
+    $('#searchQuery, #categoryFilter, #minPrice, #maxPrice').on('input change', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performSearch, 500);
+    });
+
+    // Обработка отправки формы
+    $('#searchForm').on('submit', function(e) {
+        e.preventDefault();
+        clearTimeout(searchTimeout);
+        performSearch();
+    });
+
+    function performSearch() {
+        const formData = $('#searchForm').serialize();
+        
+        $('#loadingSpinner').show();
+        $('#searchResults').hide();
+        
+        $.ajax({
+            url: '{% url "service_search" %}',
+            type: 'GET',
+            data: formData,
+            success: function(data) {
+                $('#searchResults').html(data);
+                $('#searchResults').show();
+            },
+            error: function() {
+                $('#searchResults').html(`
+                    <div class="alert alert-danger text-center m-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Ошибка при поиске услуг
+                    </div>
+                `);
+                $('#searchResults').show();
+            },
+            complete: function() {
+                $('#loadingSpinner').hide();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

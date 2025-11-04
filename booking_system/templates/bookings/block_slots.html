@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Блокировка времени{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light bg-opacity-50 border-0 py-3">
+                    <h4 class="mb-0 d-flex align-items-center">
+                        <div class="bg-warning bg-opacity-10 rounded p-2 me-3">
+                            <i class="fas fa-lock text-warning"></i>
+                        </div>
+                        Блокировка временных слотов
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info border-0 shadow-sm mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <div>
+                                Используйте эту форму для блокировки времени (отпуск, выходной, технические работы)
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark">
+                                    <i class="fas fa-calendar text-primary me-2"></i>Дата:
+                                </label>
+                                <input type="date" name="date" class="form-control rounded-3" required 
+                                       min="{{ today|date:'Y-m-d' }}">
+                                <div class="form-text text-muted">Выберите дату для блокировки</div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold text-dark">
+                                    <i class="fas fa-clock text-primary me-2"></i>Время начала:
+                                </label>
+                                <input type="time" name="start_time" class="form-control rounded-3" value="09:00" required>
+                                <div class="form-text text-muted">Начало периода</div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold text-dark">
+                                    <i class="fas fa-clock text-primary me-2"></i>Время окончания:
+                                </label>
+                                <input type="time" name="end_time" class="form-control rounded-3" value="18:00" required>
+                                <div class="form-text text-muted">Конец периода</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-comment text-primary me-2"></i>Причина блокировки:
+                            </label>
+                            <input type="text" name="reason" class="form-control rounded-3" 
+                                   placeholder="Например: Выходной, Технические работы, Отпуск">
+                            <div class="form-text text-muted">Укажите причину для идентификации</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'manager_dashboard' %}" class="btn btn-outline-secondary me-md-2 rounded-pill px-4 py-2">
+                                <i class="fas fa-arrow-left me-1"></i>Назад к панели
+                            </a>
+                            <button type="submit" class="btn btn-warning rounded-pill px-4 py-2 fw-semibold">
+                                <i class="fas fa-lock me-1"></i>Заблокировать время
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+}
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    border: none;
+    color: #000;
+    font-weight: 600;
+}
+
+.btn-warning:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+}
+
+.rounded-pill {
+    border-radius: 50px !important;
+}
+
+.rounded-3 {
+    border-radius: 12px !important;
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+.form-label {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}

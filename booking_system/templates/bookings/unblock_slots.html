@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}Разблокировка слотов{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div class="d-flex align-items-center">
+            <div class="bg-success bg-opacity-10 rounded p-2 me-3">
+                <i class="fas fa-unlock text-success fa-lg"></i>
+            </div>
+            <div>
+                <h2 class="h3 mb-1 fw-bold">Разблокировка временных слотов</h2>
+                <p class="text-muted mb-0 small">Выберите слоты для активации</p>
+            </div>
+        </div>
+        <a href="{% url 'blocked_slots_list' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+            <i class="fas fa-arrow-left me-2"></i>Назад
+        </a>
+    </div>
+    
+    {% if blocked_slots %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light bg-opacity-50 border-0 py-3">
+                <h5 class="card-title mb-0 d-flex align-items-center">
+                    <i class="fas fa-list text-primary me-2"></i>
+                    Выберите слоты для разблокировки
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 50px;">
+                                    <input type="checkbox" id="select-all" class="form-check-input">
+                                </th>
+                                <th class="text-center">Дата</th>
+                                <th class="text-center">Время</th>
+                                <th class="text-center">Услуга</th>
+                                <th class="text-center">Причина блокировки</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for slot in blocked_slots %}
+                            <tr>
+                                <td class="text-center align-middle">
+                                    <input type="checkbox" name="slot_ids" value="{{ slot.id }}" class="form-check-input slot-checkbox">
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="fw-medium text-dark">{{ slot.date|date:"d.m.Y" }}</span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="text-muted fw-medium">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge bg-primary bg-opacity-10 text-dark border border-primary border-opacity-25 rounded-pill px-3 py-2">
+                                        {{ slot.service.name }}
+                                    </span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    {% if slot.block_reason %}
+                                        <span class="text-muted">{{ slot.block_reason }}</span>
+                                    {% else %}
+                                        <span class="text-muted fst-italic">Не указана</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light bg-opacity-50 border-0 py-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success rounded-pill px-4 py-2 fw-semibold">
+                            <i class="fas fa-unlock me-2"></i>Разблокировать выбранные
+                        </button>
+                        <a href="{% url 'blocked_slots_list' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2">Отмена</a>
+                    </div>
+                    <small class="text-muted fw-medium">
+                        Выбрано: <span id="selected-count" class="badge bg-primary rounded-pill px-3 py-2">0</span> слотов
+                    </small>
+                </div>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <!-- Пустое состояние -->
+    <div class="text-center py-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body py-5">
+                <div class="bg-light bg-opacity-50 rounded-circle d-inline-flex p-4 mb-3">
+                    <i class="fas fa-unlock fa-2x text-muted"></i>
+                </div>
+                <h4 class="text-muted mb-3">Нет слотов для разблокировки</h4>
+                <p class="text-muted mb-4">Все слоты уже активны или нет заблокированных</p>
+                <a href="{% url 'blocked_slots_list' %}" class="btn btn-primary rounded-pill px-4 py-2">
+                    <i class="fas fa-arrow-left me-2"></i>Назад к списку блокировок
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.slot-checkbox');
+    const selectedCount = document.getElementById('selected-count');
+    
+    selectAll.addEventListener('change', function() {
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAll.checked;
+        });
+        updateSelectedCount();
+    });
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+    });
+    
+    function updateSelectedCount() {
+        const selected = document.querySelectorAll('.slot-checkbox:checked').length;
+        selectedCount.textContent = selected;
+    }
+    
+    updateSelectedCount();
+});
+</script>
+
+<style>
+.card {
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.table {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+    padding: 1rem 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table td {
+    padding: 1.25rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: center;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.04);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.rounded-pill {
+    border-radius: 50px !important;
+}
+
+.form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+</style>
+{% endblock %}
